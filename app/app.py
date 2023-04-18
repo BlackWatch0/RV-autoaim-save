@@ -67,7 +67,7 @@ def send_packet(app_config, packet_queue):
         task_count = task_count % 10086 + 1
         packet = packet_queue.get(timeout=5000)
         bridge.send(packet)
-        print(packet)
+        # print(packet)
         # try:
         #     packet = packet_queue.get(timeout=5000)
         #     bridge.send(packet)
@@ -82,13 +82,14 @@ def aim_enemy(app_config, image_queue, packet_queue):
     # config
     center = (app_config['width']/2, app_config['height']/2)
     threshold_target_changed = 0.5
-    distance_to_laser = 12
-    x_fix = -15
+    distance_to_laser = 10
+    x_fix = -150
     threshold_shoot = 0.03
     threshold_position_changed = 70
     # autoaim
     track_state = 0  # 0:tracking, 1:lost
     config = autoaim.Config().read(app_config['config_name']).data
+    print(config)
     predictor = autoaim.Predictor(config)
     last_pair = None
     pair = None
@@ -205,21 +206,18 @@ def aim_enemy(app_config, image_queue, packet_queue):
 
             h = moving_average(height_record_list, h)
 
-            # distance
-            # 英雄
-            # if mode == 'blue':
-            #     d = 73.7*(h**-0.972)
-            # else:
-            #     d = 72.472*(h**-1.027)
-            # 步兵
-            d = 257.28*(h**-1.257)
+            # distance 步兵 大恒
+            d = 49.312*(h**-0.961)
 
             # antigravity
             y_fix = 0
             # y_fix -= (2.75*d*d -1.6845*d - 0.4286)/5.5*h # hero
-            y_fix -= min(1.4777*d*d + -3.532*d - 2.1818, 8) / \
-                5.5 * h  # infantry
-            # print(d, y_fix)
+            # y_fix -= min(1.4777*d*d + -3.532*d - 2.1818, 8) / 5.5 * h  # infantry
+            t = d/18
+            v0_y = 0 # direction: down
+            y_fix -= v0_y*t+0.5*9.81*t*t*100*(h/5.5)
+
+            # print(d, 0.5*9.81*((d/18)*(d/18))*100*(h/5.5))
 
             # distance between camera and barrel
             y_fix -= h/5.5*distance_to_laser
@@ -231,9 +229,9 @@ def aim_enemy(app_config, image_queue, packet_queue):
         # resolve angle
         # target_undistort = toolbox.undistort_points([target_yfix])[0][0]
         angle = toolbox.calc_point_angle(target_yfix, center)
-        output = [float(angle[0]/15), float(angle[1]/15)]
-        output = [miao(output[0], -2.0, 2.0),
-                  miao(output[1], -1.2, 1.2)]
+        output = [float(angle[0]/30), float(angle[1]/50)]
+        output = [miao(output[0], -0.3, 0.3),
+                  miao(output[1], -0.3, 0.3)]
         # print('output: ', output)
 
         # decide to shoot
@@ -258,11 +256,11 @@ def aim_enemy(app_config, image_queue, packet_queue):
         if fpscount == 100:
             fps = 100/(time.time() - fps_last_timestamp)
             fps_last_timestamp = time.time()
-            # print('cal fps: ', fps)
+            print('cal fps: ', fps)
 
         ##### GUI #####
         if app_config['gui_update_every'] is not None and (task_count % app_config['gui_update_every'])+1 == 1:
-            # print('out: ', x, y, shoot_it)
+            #print('out: ', x, y, shoot_it)
             # print('height: ', h, w)
             pipe(
                 img.copy(),
@@ -270,9 +268,9 @@ def aim_enemy(app_config, image_queue, packet_queue):
                 toolbox.draw_bounding_rects,
                 toolbox.draw_texts()(lambda l: l['bounding_rect'][3]),
                 toolbox.draw_pair_bounding_rects,
-                # toolbox.draw_pair_bounding_text()(
-                #     lambda l: '{:.2f}'.format(l['angle'])
-                # ),
+                toolbox.draw_pair_bounding_text()(
+                    lambda l: '{:.2f}'.format(l['bounding_rect'][3])
+                ),
                 curry(toolbox.draw_centers)(center=center),
                 toolbox.draw_target()(target),
                 toolbox.draw_fps()(int(fps)),

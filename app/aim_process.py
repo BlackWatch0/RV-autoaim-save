@@ -52,7 +52,6 @@ if __name__ == '__main__':
         elif arg == 'analysis':
             app_config['analysis'] = True
     print(app_config)
-
     image_queue = ArrayQueue(50, 3)
     packet_queue = Queue(3)
 

@@ -39,6 +39,14 @@ def showoff(img, timeout=0, update=False):
         return True
     return False
 
+def uccu(img, timeout=0, update=False):
+    """an easy way to show image, return `exit`"""
+    cv2.imshow('showoff', img)
+    key = cv2.waitKey(timeout)
+    if not update:
+        cv2.destroyAllWindows()
+    return key
+
 
 def color(img):
     return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
