@@ -67,7 +67,7 @@ def send_packet(app_config, packet_queue):
         task_count = task_count % 10086 + 1
         packet = packet_queue.get(timeout=5000)
         bridge.send(packet)
-        # print(packet)
+        print(packet)
         # try:
         #     packet = packet_queue.get(timeout=5000)
         #     bridge.send(packet)
@@ -260,7 +260,7 @@ def aim_enemy(app_config, image_queue, packet_queue):
 
         ##### GUI #####
         if app_config['gui_update_every'] is not None and (task_count % app_config['gui_update_every'])+1 == 1:
-            #print('out: ', x, y, shoot_it)
+            print('out: ', x, y, shoot_it)
             # print('height: ', h, w)
             pipe(
                 img.copy(),
